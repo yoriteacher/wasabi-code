@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>와사비2 — 일본 연중행사 회화 연습</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Zen+Maru+Gothic:wght@400;500;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --washi:#f7eede; --washi-2:#f1e3cf;
+    --ink:#2a2320; --ink-soft:#6f6258; --line:#e3d7c0;
+    --vermilion:#d8442b; --vermilion-deep:#b5341f;
+    --gold:#e6ad45; --indigo:#2c4a6e; --indigo-soft:#3c628e;
+    --card:#fffaf1;
+    --kr:"Gowun Dodum", sans-serif;
+    --jp:"Zen Maru Gothic", sans-serif;
+    --display:"Yomogi", cursive;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%; margin:0;}
+  body{
+    font-family:var(--kr); color:var(--ink);
+    background:
+      radial-gradient(120% 80% at 50% -10%, rgba(230,173,69,.22), transparent 60%),
+      radial-gradient(90% 60% at 110% 110%, rgba(216,68,43,.12), transparent 60%),
+      linear-gradient(180deg,var(--washi),var(--washi-2));
+    background-attachment:fixed; display:flex; justify-content:center; overflow:hidden;
+  }
+  body::before{content:""; position:fixed; inset:0; pointer-events:none; opacity:.05; z-index:0;
+    background-image:radial-gradient(rgba(0,0,0,.6) .5px, transparent .5px); background-size:4px 4px;}
+  .app{position:relative; z-index:1; width:100%; max-width:480px; height:100dvh; display:flex; flex-direction:column;}
+
+  /* ---------- 시작 화면 ---------- */
+  #setup{flex:1; display:flex; flex-direction:column; justify-content:flex-start;
+    padding:24px 24px 30px; gap:15px; overflow-y:auto;}
+  .lantern-mark{width:70px; height:88px; margin:6px auto 2px; position:relative;
+    background:linear-gradient(180deg,var(--vermilion),var(--vermilion-deep));
+    border-radius:46% 46% 46% 46%/40% 40% 60% 60%;
+    box-shadow:0 14px 34px rgba(181,52,31,.4), inset 0 -10px 20px rgba(0,0,0,.18);
+    display:grid; place-items:center; color:#ffe; font-family:var(--display); font-size:.92rem; letter-spacing:1px;}
+  .lantern-mark .cap{position:absolute; left:50%; top:-9px; transform:translateX(-50%);
+    width:32px; height:11px; background:var(--ink); border-radius:4px;}
+  h1{font-family:var(--display); font-weight:400; text-align:center; font-size:1.7rem;
+    line-height:1.4; margin:4px 0 0; color:var(--vermilion-deep);}
+  h1 small{display:block; font-family:var(--kr); color:var(--ink-soft); font-size:.84rem; margin-top:6px;}
+  .intro{background:var(--card); border:1px solid rgba(181,52,31,.16); border-radius:16px;
+    padding:14px 16px; font-size:.9rem; line-height:1.7; box-shadow:0 8px 22px rgba(120,80,40,.08);}
+  .intro b{color:var(--vermilion-deep);}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px 16px;
+    box-shadow:0 8px 22px rgba(120,80,40,.06);}
+  .card .clabel{font-size:.8rem; color:var(--vermilion-deep); font-weight:700; margin-bottom:9px;}
+  .field{display:flex; flex-direction:column; gap:6px; margin-bottom:11px;}
+  .field:last-child{margin-bottom:0;}
+  .field label{font-size:.84rem; color:var(--ink-soft); padding-left:3px;}
+  .field input{font-family:var(--kr); font-size:1rem; padding:12px 14px; border:1.5px solid rgba(44,74,110,.22);
+    border-radius:12px; background:#fff; color:var(--ink); outline:none; width:100%;}
+  .field input:focus{border-color:var(--indigo-soft); box-shadow:0 0 0 3px rgba(60,98,142,.14);}
+
+  /* 개인정보 안내 */
+  .privacy-box{max-height:220px; overflow-y:auto; border:1px solid var(--line); border-radius:11px;
+    background:#fffdf8; padding:13px 14px; font-size:.78rem; line-height:1.6; color:var(--ink);}
+  .privacy-box::-webkit-scrollbar{width:7px;}
+  .privacy-box::-webkit-scrollbar-thumb{background:#d8cdb6; border-radius:8px;}
+  .privacy-box h4{font-size:.82rem; color:var(--vermilion-deep); margin:13px 0 4px;}
+  .privacy-box h4:first-of-type{margin-top:2px;}
+  .privacy-box p{margin:2px 0;}
+  .privacy-box .em{color:var(--ink-soft);}
+  .privacy-box .fill{background:#fdeede; border-bottom:1px solid var(--gold); padding:0 3px; border-radius:3px; font-weight:600;}
+  .consent{display:flex; align-items:flex-start; gap:10px; margin-top:12px; cursor:pointer; font-size:.86rem; line-height:1.5;}
+  .consent input{width:20px; height:20px; flex:none; margin-top:1px; accent-color:var(--vermilion);}
+  .btn-start{font-family:var(--kr); font-size:1.06rem; font-weight:700; color:#fff; border:none; border-radius:15px;
+    padding:15px; cursor:pointer; background:linear-gradient(180deg,var(--vermilion),var(--vermilion-deep));
+    box-shadow:0 10px 26px rgba(181,52,31,.34); transition:transform .12s, box-shadow .12s, opacity .12s;}
+  .btn-start:active{transform:translateY(2px);}
+  .btn-start:disabled{opacity:.45; box-shadow:none; cursor:not-allowed;}
+  .btn-free{background:linear-gradient(180deg,#3c628e,#2c4a6e); box-shadow:0 10px 26px rgba(44,74,110,.3); margin-top:-6px;}
+  .err{color:var(--vermilion-deep); font-size:.82rem; text-align:center; min-height:1em;}
+
+  /* ---------- 대화 화면 ---------- */
+  #chat{flex:1; display:none; flex-direction:column; min-height:0;}
+  .topbar{display:flex; align-items:center; justify-content:space-between; padding:13px 18px 6px; gap:10px;}
+  .topbar .title{font-family:var(--display); color:var(--vermilion-deep); font-size:1.05rem;}
+  .topbar .who{font-size:.74rem; color:var(--ink-soft);}
+  .topbar button{font-family:var(--kr); font-size:.8rem; color:var(--ink-soft); background:rgba(0,0,0,.05);
+    border:none; border-radius:20px; padding:7px 13px; cursor:pointer;}
+  #log{flex:1; min-height:0; overflow-y:auto; padding:8px 16px 12px; display:flex; flex-direction:column; gap:12px; scroll-behavior:smooth;}
+  .row{display:flex; gap:9px; align-items:flex-end; max-width:88%;}
+  .row.ai{align-self:flex-start;}
+  .row.me{align-self:flex-end; flex-direction:row-reverse;}
+  .ava{flex:0 0 34px; width:34px; height:34px; border-radius:50%; display:grid; place-items:center; font-size:1rem;}
+  .row.ai .ava{background:linear-gradient(180deg,var(--vermilion),var(--vermilion-deep));}
+  .row.me .ava{background:linear-gradient(180deg,var(--indigo-soft),var(--indigo)); color:#fff; font-family:var(--kr); font-size:.72rem; font-weight:700;}
+  .bubble{font-family:var(--jp); font-size:1.1rem; line-height:1.75; padding:11px 15px; border-radius:18px; word-break:break-word;}
+  .row.ai .bubble{background:var(--card); border:1px solid rgba(181,52,31,.16); border-bottom-left-radius:6px; box-shadow:0 4px 14px rgba(120,80,40,.07);}
+  .row.me .bubble{background:linear-gradient(180deg,#34597f,var(--indigo)); color:#fff; border-bottom-right-radius:6px; box-shadow:0 4px 14px rgba(44,74,110,.22);}
+  .bubble .name{display:block; font-family:var(--kr); font-size:.66rem; color:var(--ink-soft); margin-bottom:3px;}
+  .row.me .bubble .name{color:rgba(255,255,255,.7);}
+
+  /* 마이크 영역 */
+  .dock{padding:6px 0 24px; display:flex; flex-direction:column; align-items:center; gap:10px;}
+  .turnchip{font-size:.78rem; color:var(--ink-soft); background:rgba(0,0,0,.05); padding:5px 13px; border-radius:20px;}
+  .turnchip.done{background:rgba(46,120,80,.14); color:#2c7a4e; font-weight:700;}
+  .status{font-size:.9rem; color:var(--ink-soft); min-height:1.2em; text-align:center; padding:0 20px;}
+  .fb-btn{display:none; font-family:var(--kr); font-weight:700; font-size:.95rem; color:#fff; border:none;
+    border-radius:14px; padding:12px 20px; cursor:pointer;
+    background:linear-gradient(180deg,#3fa06a,#2c7a4e); box-shadow:0 8px 20px rgba(44,122,78,.32);}
+  .fb-btn:disabled{opacity:.5;}
+  .mic-wrap{position:relative; width:160px; height:160px; display:grid; place-items:center;}
+  .ring{position:absolute; inset:0; border-radius:50%; border:2px solid var(--vermilion); opacity:0; pointer-events:none;}
+  .listening .ring{animation:ripple 2s ease-out infinite;}
+  .listening .ring.r2{animation-delay:1s;}
+  @keyframes ripple{0%{transform:scale(.62); opacity:.55;} 100%{transform:scale(1.08); opacity:0;}}
+  .mic-btn{width:122px; height:122px; border-radius:50%; border:none; cursor:pointer;
+    background:radial-gradient(circle at 38% 32%, #f2693f, var(--vermilion) 55%, var(--vermilion-deep));
+    box-shadow:0 12px 30px rgba(181,52,31,.42), inset 0 -8px 18px rgba(0,0,0,.18), inset 0 6px 14px rgba(255,255,255,.28);
+    display:grid; place-items:center; transition:transform .12s; position:relative; z-index:2;}
+  .mic-btn:active{transform:scale(.95);}
+  .mic-btn svg{width:50px; height:50px; fill:#fff; filter:drop-shadow(0 2px 3px rgba(0,0,0,.25));}
+  .speaking .mic-btn{animation:breathe 1.6s ease-in-out infinite;
+    background:radial-gradient(circle at 38% 32%, #f6c14e, var(--gold) 55%, #cf8d2c);}
+  @keyframes breathe{0%,100%{box-shadow:0 12px 30px rgba(230,173,69,.45), inset 0 -8px 18px rgba(0,0,0,.16);}
+    50%{box-shadow:0 12px 44px rgba(230,173,69,.85), inset 0 -8px 18px rgba(0,0,0,.16);}}
+  .paused .mic-btn{background:radial-gradient(circle at 38% 32%, #b9a89a, #8c7d6f 60%, #6f6256);
+    box-shadow:0 8px 20px rgba(0,0,0,.2), inset 0 -8px 18px rgba(0,0,0,.18);}
+
+  /* 달력 카드 */
+  .cal{background:var(--card); border:1px solid rgba(181,52,31,.16); border-radius:14px; padding:9px 11px;
+    box-shadow:0 4px 14px rgba(120,80,40,.07);}
+  .cal .caltitle{font-family:var(--jp); font-weight:700; color:var(--vermilion-deep); text-align:center; margin-bottom:5px; font-size:.92rem;}
+  .cal table{border-collapse:collapse; width:100%; min-width:226px;}
+  .cal th,.cal td{width:14.28%; text-align:center; padding:5px 0; font-size:.8rem; font-family:var(--jp); color:var(--ink);}
+  .cal th{color:var(--ink-soft); font-weight:700; font-size:.74rem;}
+  .cal th.sun,.cal td.sun{color:#c0392b;}
+  .cal th.sat,.cal td.sat{color:#2c6fb0;}
+  .cal td.hl{background:var(--vermilion); color:#fff; border-radius:50%; font-weight:700;}
+
+  /* 점수 결과 */
+  .score-wrap{margin:2px 0 6px; text-align:center;}
+  .score-num{font-family:var(--display); color:var(--vermilion-deep); font-size:3.2rem; line-height:1.1;}
+  .score-num small{font-family:var(--kr); color:var(--ink-soft); font-size:1rem;}
+  .score-label{font-size:.92rem; color:var(--ink-soft); margin-top:4px;}
+
+  /* 오버레이 */
+  .overlay{position:fixed; inset:0; z-index:5; display:none; place-items:center;
+    background:rgba(40,30,24,.55); backdrop-filter:blur(3px); padding:30px; text-align:center;}
+  .overlay.show{display:grid;}
+  .overlay .box{background:var(--card); border-radius:20px; padding:26px 24px; max-width:340px;
+    box-shadow:0 18px 50px rgba(0,0,0,.3); font-size:.94rem; line-height:1.7;}
+  .overlay .box .spin{width:38px; height:38px; margin:0 auto 14px; border-radius:50%;
+    border:4px solid rgba(181,52,31,.2); border-top-color:var(--vermilion); animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .overlay .box button{margin-top:16px; font-family:var(--kr); font-weight:700; color:#fff;
+    background:linear-gradient(180deg,var(--vermilion),var(--vermilion-deep)); border:none;
+    border-radius:13px; padding:12px 22px; cursor:pointer; font-size:1rem;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 시작 화면 -->
+  <section id="setup">
+    <div class="lantern-mark">わさび<span class="cap"></span></div>
+    <h1>와사비2
+      <small>일본 연중행사를 일본어로 이야기해 봐요</small>
+    </h1>
+
+    <div class="intro">
+      친절한 일본인 친구와 일본 연중행사의 <b>월(なんがつ)·일(なんにち)·요일(なんようび)</b>을 일본어로 말하는 연습이에요.
+      친구가 <b>몇 월·며칠·무슨 요일</b>을 번갈아 물어보고, 여러분도 친구에게 <b>직접 질문</b>해 볼 수 있어요.
+      요일을 물을 땐 <b>달력 그림</b>이 함께 나옵니다. 마이크 버튼을 누르고 일본어로 또박또박 말해 보세요.
+      대화를 마치고 싶으면 <b>마이크를 다시 누르면</b> 친구가 <b>점수(100점 만점)와 피드백</b>을 줍니다!
+      아래에서 <b>연중행사 연습</b> 또는 <b>프리토킹(자유 대화)</b>을 골라 시작하세요.
+    </div>
+
+    <div class="card">
+      <div class="clabel">개인정보 수집·이용 안내</div>
+      <div class="privacy-box">
+        <p class="em">이 앱은 일본어 회화 학습을 돕기 위해 아래와 같이 최소한의 개인정보를 처리합니다. 만 14세 이상 학생을 대상으로 합니다.</p>
+
+        <h4>1. 수집 항목 (최소 수집)</h4>
+        <p>· 학번, 이름</p>
+        <p>· 대화 기록(학생이 말한 내용과 친구(AI)의 응답이 글자로 변환된 내용), 대화 횟수, 일시</p>
+        <p class="em">※ 음성 녹음 파일은 저장하지 않습니다. 발화는 글자로 변환된 뒤 즉시 폐기됩니다.</p>
+
+        <h4>2. 수집·이용 목적</h4>
+        <p>· 일본어 회화 학습 지도 및 학습 결과 확인·피드백</p>
+
+        <h4>3. 보유·이용 기간</h4>
+        <p>· 교사가 수집한 기록: <span class="fill">[ 수집일로부터 1년 후 파기 ]</span></p>
+        <p class="em">※ 이 앱은 대화 내용을 학생 기기에 따로 저장하지 않습니다.</p>
+
+        <h4>4. 개인정보 안전성 확보 조치</h4>
+        <p>· 음성 파일 미저장, 암호화 통신(HTTPS) 사용, 담당교사만 결과에 접근</p>
+
+        <h4>5. 열람·정정·삭제·처리정지 절차</h4>
+        <p>· 수집된 본인 정보의 열람·정정·삭제·처리정지는 아래 보호책임자에게 요청할 수 있습니다.</p>
+
+        <h4>6. 만 14세 미만 아동의 개인정보 보호</h4>
+        <p>· 본 서비스는 만 14세 이상을 대상으로 하며, 만 14세 미만은 법정대리인 동의 후 이용합니다. (이용 대상 전원 만 14세 이상)</p>
+
+        <h4>7. 개인정보 보호책임자</h4>
+        <p>· 성명: 김정민 / 연락처: yoriteacher@gmail.com / 소속: 흥진고</p>
+
+        <h4>8. 제3자 제공</h4>
+        <p>· 수집한 개인정보는 원칙적으로 제3자에게 제공하지 않습니다.</p>
+
+        <h4>9. 위·수탁 관계</h4>
+        <p>· 실시간 회화 처리 및 학습 결과 저장을 위해 Google 서비스(Gemini API, 스프레드시트·앱스 스크립트)를 이용합니다.</p>
+      </div>
+      <label class="consent">
+        <input type="checkbox" id="consent">
+        <span>위 개인정보 수집·이용 안내를 읽고 이에 <b>동의</b>합니다.</span>
+      </label>
+    </div>
+
+    <div class="card">
+      <div class="clabel">학생 정보</div>
+      <div class="field">
+        <label for="sid">학번</label>
+        <input id="sid" type="text" inputmode="numeric" placeholder="예: 20312" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="sname">이름</label>
+        <input id="sname" type="text" placeholder="이름을 입력하세요" autocomplete="off">
+      </div>
+    </div>
+
+    <button class="btn-start" id="startBtn" disabled>🏮 연중행사 연습 시작</button>
+    <button class="btn-start btn-free" id="freeBtn" disabled>💬 프리토킹(자유 대화) 시작</button>
+    <div class="err" id="setupErr"></div>
+  </section>
+
+  <!-- 대화 화면 -->
+  <section id="chat">
+    <div class="topbar">
+      <span class="title">わさび2</span>
+      <span class="who" id="whoTag"></span>
+      <button id="endBtn">종료</button>
+    </div>
+    <div id="log"></div>
+    <div class="dock">
+      <div class="turnchip" id="turnChip">대답 0/3  ·  질문 0/3</div>
+      <div class="status" id="status">준비 중이에요…</div>
+      <div class="mic-wrap" id="micWrap">
+        <span class="ring r1"></span>
+        <span class="ring r2"></span>
+        <button class="mic-btn" id="micBtn" aria-label="마이크">
+          <svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="overlay" id="overlay"><div class="box" id="overlayBox"></div></div>
+</div>
+
+<script>
+// Gemini SDK는 '대화 시작' 때 동적으로 불러옵니다. (상단 import 실패로 버튼이 먹통 되는 것 방지)
+let GoogleGenAI=null, Modality=null;
+async function loadSDK(){
+  if(GoogleGenAI) return;
+  const mod = await import("https://esm.run/@google/genai");
+  GoogleGenAI = mod.GoogleGenAI; Modality = mod.Modality;
+}
+
+/* ===========================================================================
+   ⚙️ 선생님 설정 (학생에게는 보이지 않습니다)
+   1) API_KEY  : 아래 따옴표 안에 Gemini API 키를 넣어주세요. (https://aistudio.google.com/apikey)
+                 ※ 키는 화면에 표시되지 않지만 HTML '소스 보기'로는 노출될 수 있으니,
+                   사용량 한도를 제한해 둔 전용 키 사용을 권장합니다.
+   2) COLLECT_URL : 대화 기록을 받을 Google Apps Script 웹앱 URL.
+                    비워두면 수집하지 않습니다. (배포 방법은 안내문 참고)
+   =========================================================================== */
+const API_KEY     = "";
+const COLLECT_URL = "";   // 비우려면 ""
+
+const MODEL = "gemini-3.1-flash-live-preview";
+const ANS_TARGET = 3, Q_TARGET = 3;   // 대답 3번 + 질문 3번
+
+const SYSTEM_INSTRUCTION = `# 역할
+너는 한국의 고등학생과 일본의 연중행사에 대해 이야기하는 친절한 일본인 친구야.
+
+# 필수 대화 규칙 (절대 엄수!!!)
+1. 말하기: 일본어는 또박또박 '천천히' 말해. 그리고 일본어로 길게 말하지 말고, 한 번에 '짧은 한 문장' 정도로만 말해. 기초 학생이 알아듣도록 어려운 표현은 피하고, 읽기 쉽게 히라가나를 많이 쓰되 月·日·火 같은 쉬운 한자는 써도 괜찮아.
+2. 핵심 주제: 학생이 연중행사의 '월(なんがつ)·일(なんにち)·요일(なんようび)'을 일본어로 말하는 연습을 하게 하는 거야.
+3. 질문은 매번 랜덤으로! 한 번에 한 가지만, 반드시 '행사 이름'을 넣어서 물어봐. 아래 셋 중 무작위로 골라:
+   (가) 몇 월? → "ひなまつり は なんがつ ですか？"  (※ 월·일을 미리 말하지 마)
+   (나) 며칠? → "ひなまつり は なんにち ですか？"  (※ 월·일을 미리 말하지 마)
+   (다) 무슨 요일? → 이때만 날짜를 먼저 알려주고 물어 → "ひなまつり は 3月3日 です。 なんようび ですか？"
+   ★ 금지: "3日 は なんにち ですか？"처럼 숫자만 묻거나, 정답을 먼저 말하고 또 묻는 이상한 질문은 절대 하지 마. 질문은 언제나 '행사 이름 + 무엇을 묻는지' 형태여야 해.
+4. 학생이 질문하도록 유도해줘. 친구가 한두 번 물어본 뒤에는 학생이 직접 묻게 권하고, 이때는 반드시 한국어로 "그럼 이제 너가 나에게 질문해 줘." 라고 말해. (이 문장만 한국어로, 다른 대화는 일본어) 학생이 물어보면 위 '행사 목록'의 날짜·요일로 친절하게 대답해 줘.
+5. 대화 분량: 학생이 '대답하는 차례 3번'과 '직접 질문하는 차례 3번'이 나오도록 번갈아 진행해. (친구 질문 → 학생 답 / 친구 권유 → 학생 질문 → 친구 답)
+6. 정답 판정 (아주 중요!): 학생 대답을 아래 '행사 목록'의 정답과 반드시 비교해. 정답이면 크게 칭찬하고 다음으로 넘어가. 틀리거나 모르면 절대 칭찬(잘했어요/正解 등)하지 말고, 따뜻하게 격려한 뒤 한국어로 살짝 힌트를 주고 한 번 더 물어봐. 틀린 답을 맞다고 하면 절대 안 돼.
+7. 마무리 피드백 (반드시!): 학생이 그만하겠다고 하거나 마무리 신호가 오면, 횟수와 상관없이 오늘 대화를 정리해 줘.
+   - 반드시 맨 처음에 "점수: NN점" 형식으로 100점 만점 점수를 한 번 말해줘. (NN은 0~100 숫자)
+   - 점수는 무조건 잘 주지 마. 학생이 '실제로 맞힌 대답 수'와 '올바르게 한 질문 수'를 세어서, 맞힌 만큼만 점수를 줘. 틀린 답에는 점수를 주지 말고 깎아. (예: 대답 3번 중 1번만 맞히면 낮은 점수)
+   - 피드백은 '대부분 한국어'로 해. 일본어는 응원·칭찬 1~2문장만 섞어줘.
+   - 잘한 점과 더 연습하면 좋을 점을 구체적으로 짚어줘. (대답을 몇 번 맞혔는지, 질문을 몇 번 했는지도 언급)
+
+# 행사 목록 (2026년 기준 — 반드시 이 날짜와 요일만 사용)
+- おしょうがつ(お正月) 1月1日 → 木曜日(목)
+- ひなまつり(ひな祭り) 3月3日 → 火曜日(화)
+- こどものひ(こどもの日) 5月5日 → 火曜日(화)
+- たなばた(七夕) 7月7日 → 火曜日(화)
+- おぼん(お盆) 8月15日 → 土曜日(토)
+- おおみそか(大晦日) 12月31日 → 木曜日(목)
+
+# 답변 전용 행사 (네가 먼저 묻지 마! 학생이 물어보면 '몇 월 며칠'만 알려주고, 요일은 해마다 달라서 말하지 마)
+- せつぶん(節分) → だいたい 2月3日
+- しちごさん(七五三) → 11月15日
+
+# 첫인사
+"こんにちは！ にほんの ぎょうじ に ついて はなしましょう。 まず しつもん です。 おしょうがつ は なんがつ ですか？"`;
+
+const SYSTEM_FREE = `# 역할
+너는 한국의 고등학생과 자유롭게 수다 떠는 친절한 일본인 친구야. (프리토킹)
+
+# 규칙
+1. 수준: JLPT N5(일본어 기초·고등학교 2학년 수준)에 맞는 아주 쉬운 단어와 문법만 사용해. (です·ます체, 기본 조사, 현재형과 간단한 과거형, 쉬운 일상 표현. 어려운 한자·경어·관용구·긴 문장은 금지) 일본어는 또박또박 '천천히', 한 번에 '짧은 한 문장'으로만 말하고, 히라가나 위주로 써.
+2. 일상적인 주제(취미, 학교, 음식, 좋아하는 것, 주말 등)로 자연스럽게 묻고 답하며 대화를 이어가. 학생이 일본어로 많이 말하도록 격려해.
+3. 학생이 막히면 한국어로 살짝 도와줘. 틀린 표현은 부드럽게 고쳐주되, 틀렸는데 잘했다고 거짓 칭찬은 하지 마. 잘하면 칭찬, 어려워하면 응원.
+4. 마무리 신호가 오면:
+   - 맨 처음에 "점수: NN점"(100점 만점)으로 점수를 말해. 점수는 무조건 잘 주지 말고, 학생이 일본어로 얼마나 말하고 대화를 잘 이어갔는지에 따라 실제 수준대로 매겨.
+   - 피드백은 대부분 한국어, 일본어는 응원 1~2문장만.
+
+# 첫인사
+"こんにちは！ きょうは じゆうに おしゃべり しましょう。 すきな たべものは なんですか？"`;
+
+/* ---------- DOM ---------- */
+const $ = (id) => document.getElementById(id);
+const setupEl=$("setup"), chatEl=$("chat");
+const sidInput=$("sid"), snameInput=$("sname"), consentBox=$("consent");
+const startBtn=$("startBtn"), freeBtn=$("freeBtn"), setupErr=$("setupErr");
+const endBtn=$("endBtn"), logEl=$("log"), statusEl=$("status"), whoTag=$("whoTag");
+const micWrap=$("micWrap"), micBtn=$("micBtn");
+const turnChip=$("turnChip");
+const overlay=$("overlay"), overlayBox=$("overlayBox");
+
+/* ---------- 상태 ---------- */
+let ai=null, session=null;
+let micEnabled=true, running=false;
+let micCtx=null, micStream=null, scriptNode=null;
+let playCtx=null, nextStartTime=0;
+const activeSources=new Set();
+let curAiBubble=null, curMeBubble=null;
+let studentId="", studentName="", mode="quiz";
+let transcript=[], answerCount=0, questionCount=0, expectQuestion=false;
+let awaitingFeedback=false, saved=false, lastScore="", feedbackText="";
+
+/* 시작 버튼 활성화 조건 */
+function checkReady(){
+  const ok = !!(sidInput.value.trim() && snameInput.value.trim() && consentBox.checked);
+  startBtn.disabled = !ok;
+  freeBtn.disabled = !ok;
+}
+[sidInput, snameInput].forEach(el=>el.addEventListener("input", checkReady));
+consentBox.addEventListener("change", checkReady);
+
+/* ===================== 마이크 캡처용 AudioWorklet ===================== */
+const workletCode = `
+class PCMProcessor extends AudioWorkletProcessor {
+  constructor(){ super(); this.targetRate=16000; this.ratio=sampleRate/this.targetRate;
+    this.buf=[]; this.pos=0; this.out=[]; this.chunk=1600; }
+  process(inputs){
+    const inp=inputs[0];
+    if(inp && inp[0]){
+      const ch=inp[0];
+      for(let i=0;i<ch.length;i++) this.buf.push(ch[i]);
+      while(this.pos+1<this.buf.length){
+        const idx=Math.floor(this.pos), frac=this.pos-idx;
+        this.out.push(this.buf[idx]*(1-frac)+this.buf[idx+1]*frac);
+        this.pos+=this.ratio;
+        if(this.out.length>=this.chunk) this.flush();
+      }
+      const consumed=Math.floor(this.pos);
+      if(consumed>0){ this.buf.splice(0,consumed); this.pos-=consumed; }
+    }
+    return true;
+  }
+  flush(){
+    const n=this.out.length, pcm=new Int16Array(n);
+    for(let i=0;i<n;i++){ let v=Math.max(-1,Math.min(1,this.out[i])); pcm[i]=v<0?v*0x8000:v*0x7FFF; }
+    this.port.postMessage(pcm.buffer,[pcm.buffer]); this.out=[];
+  }
+}
+registerProcessor('pcm-processor', PCMProcessor);
+`;
+const workletURL = URL.createObjectURL(new Blob([workletCode], {type:"application/javascript"}));
+
+/* ===================== 유틸 ===================== */
+function b64FromBuffer(buf){
+  const bytes=new Uint8Array(buf); let bin=""; const step=0x8000;
+  for(let i=0;i<bytes.length;i+=step) bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+step));
+  return btoa(bin);
+}
+function bufferFromB64(b64){
+  const bin=atob(b64), bytes=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  return bytes.buffer;
+}
+
+/* ===================== 말풍선 ===================== */
+function makeBubble(who){
+  const row=document.createElement("div"); row.className="row "+who;
+  const ava=document.createElement("div"); ava.className="ava"; ava.textContent = who==="ai"?"🏮":"나";
+  const bubble=document.createElement("div"); bubble.className="bubble";
+  const name=document.createElement("span"); name.className="name"; name.textContent = who==="ai"?"ともだち":"わたし";
+  const text=document.createElement("span"); text.className="txt";
+  bubble.append(name,text); row.append(ava,bubble); logEl.appendChild(row); scrollDown();
+  return text;
+}
+function appendText(who,delta){
+  if(who==="ai"){ if(!curAiBubble) curAiBubble=makeBubble("ai"); curAiBubble.textContent+=delta; }
+  else { if(!curMeBubble) curMeBubble=makeBubble("me"); curMeBubble.textContent+=delta; }
+  scrollDown();
+}
+function scrollDown(){ logEl.scrollTop=logEl.scrollHeight; }
+
+/* ===================== 달력 ===================== */
+const CAL_YEAR = 2026;
+// 친구가 말한 내용에서 행사를 찾아 (월, 일) 반환
+const EVENTS = [
+  {k:["おしょうがつ","お正月","正月","오쇼가츠","오쇼가쯔"], m:1, d:1},
+  {k:["ひなまつり","ひな祭り","雛祭","히나마츠리","히나마쯔리"], m:3, d:3},
+  {k:["こどものひ","こどもの日","子供の日","코도모노히"], m:5, d:5},
+  {k:["たなばた","七夕","타나바타"], m:7, d:7},
+  {k:["おぼん","お盆","盆","오봉","오본"], m:8, d:15},
+  {k:["おおみそか","大晦日","大みそか","오미소카","오오미소카"], m:12, d:31},
+];
+const MONTH_WORDS = {1:["1月","１月","いちがつ","一月"],2:["2月","２月","にがつ","二月"],3:["3月","３月","さんがつ","三月"],
+  4:["4月","４月","しがつ","四月"],5:["5月","５月","ごがつ","五月"],6:["6月","６月","ろくがつ","六月"],
+  7:["7月","７月","しちがつ","七月"],8:["8月","８月","はちがつ","八月"],9:["9月","９月","くがつ","九月"],
+  10:["10月","１０月","じゅうがつ","十月"],11:["11月","じゅういちがつ","十一月"],12:["12月","じゅうにがつ","十二月"]};
+
+function detectEvent(text){
+  if(!text) return null;
+  // 한 문장에 이전 행사까지 함께 나올 수 있으므로, '가장 뒤에 언급된'(=지금 묻는) 행사를 고른다
+  let best=null, bestPos=-1;
+  for(const e of EVENTS){
+    for(const w of e.k){ const i=text.lastIndexOf(w); if(i>bestPos){ bestPos=i; best={m:e.m,d:e.d}; } }
+  }
+  if(best) return best;
+  // 행사 키워드가 없으면 가장 뒤에 나온 월 표현이라도 찾기
+  let bm=null, bmPos=-1;
+  for(let m=1;m<=12;m++){
+    for(const w of MONTH_WORDS[m]){ const i=text.lastIndexOf(w); if(i>bmPos){ bmPos=i; bm={m:m,d:0}; } }
+  }
+  return bm;
+}
+
+function renderCalendar(month, day){
+  const first=new Date(CAL_YEAR, month-1, 1).getDay();   // 0=일
+  const dim=new Date(CAL_YEAR, month, 0).getDate();
+  const heads=["日","月","火","水","木","金","土"];
+  let cells="";
+  for(let i=0;i<first;i++) cells+="<td></td>";
+  for(let dt=1;dt<=dim;dt++){
+    const wd=(first+dt-1)%7;
+    let cls = wd===0?"sun":(wd===6?"sat":"");
+    if(dt===day) cls=(cls?cls+" ":"")+"hl";
+    cells+="<td class='"+cls+"'>"+dt+"</td>";
+    if((first+dt)%7===0) cells+="</tr><tr>";
+  }
+  let head="";
+  heads.forEach((h,i)=>{ head+="<th class='"+(i===0?"sun":(i===6?"sat":""))+"'>"+h+"</th>"; });
+
+  const row=document.createElement("div"); row.className="row ai";
+  const ava=document.createElement("div"); ava.className="ava"; ava.textContent="🗓️";
+  const cal=document.createElement("div"); cal.className="cal";
+  cal.innerHTML="<div class='caltitle'>"+CAL_YEAR+"年 "+month+"月</div>"+
+    "<table><tr>"+head+"</tr><tr>"+cells+"</tr></table>";
+  row.append(ava,cal); logEl.appendChild(row); scrollDown();
+}
+
+/* ===================== 오디오 재생 (24kHz) ===================== */
+function playChunk(b64){
+  if(!playCtx) return;
+  const int16=new Int16Array(bufferFromB64(b64)), f32=new Float32Array(int16.length);
+  for(let i=0;i<int16.length;i++) f32[i]=int16[i]/32768;
+  const ab=playCtx.createBuffer(1,f32.length,24000); ab.copyToChannel(f32,0);
+  const src=playCtx.createBufferSource(); src.buffer=ab; src.connect(playCtx.destination);
+  const now=playCtx.currentTime; if(nextStartTime<now) nextStartTime=now;
+  src.start(nextStartTime); nextStartTime+=ab.duration;
+  activeSources.add(src); src.onended=()=>activeSources.delete(src);
+  setSpeaking(true);
+}
+function stopPlayback(){ activeSources.forEach(s=>{try{s.stop();}catch(e){}}); activeSources.clear(); nextStartTime=0; setSpeaking(false); }
+function aiIsSpeaking(){ return playCtx && nextStartTime>playCtx.currentTime+0.05; }
+
+/* ===================== UI 상태 ===================== */
+function setSpeaking(on){
+  micWrap.classList.toggle("speaking",on);
+  if(on) micWrap.classList.remove("listening");
+  else if(micEnabled && !micWrap.classList.contains("paused")) micWrap.classList.add("listening");
+  refreshStatus();
+}
+function refreshStatus(){
+  if(!running) return;
+  if(awaitingFeedback){ statusEl.textContent="✨ 점수와 피드백을 준비하고 있어요…"; return; }
+  if(!micEnabled){ statusEl.textContent="🌸 오늘 연습 끝!"; return; }
+  if(micWrap.classList.contains("speaking")) statusEl.textContent="🔊 친구가 말하고 있어요 — 잘 들어보세요";
+  else statusEl.textContent="🎤 듣고 있어요 — 끝내려면 마이크를 누르세요";
+}
+function updateTurnChip(){
+  if(mode==="free"){
+    turnChip.classList.toggle("done", answerCount>=1);
+    turnChip.textContent = "프리토킹 — 대화 "+answerCount+"회 · 마이크를 누르면 점수";
+    return;
+  }
+  const done = (answerCount>=ANS_TARGET && questionCount>=Q_TARGET);
+  turnChip.classList.toggle("done", done);
+  turnChip.textContent = done
+    ? "대답 "+answerCount+"·질문 "+questionCount+" — 마이크를 누르면 점수!"
+    : "대답 "+Math.min(answerCount,ANS_TARGET)+"/"+ANS_TARGET+"  ·  질문 "+Math.min(questionCount,Q_TARGET)+"/"+Q_TARGET;
+}
+
+/* ===================== 서버 메시지 처리 ===================== */
+function onMessage(msg){
+  const sc=msg.serverContent; if(!sc) return;
+  if(sc.interrupted) stopPlayback();
+  if(sc.inputTranscription && sc.inputTranscription.text) appendText("me", sc.inputTranscription.text);
+  if(sc.outputTranscription && sc.outputTranscription.text) appendText("ai", sc.outputTranscription.text);
+  if(sc.modelTurn && sc.modelTurn.parts){
+    for(const part of sc.modelTurn.parts){
+      if(part.inlineData && part.inlineData.data) playChunk(part.inlineData.data);
+    }
+  }
+  if(sc.turnComplete){
+    const aiText = (curAiBubble && curAiBubble.textContent.trim()) ? curAiBubble.textContent.trim() : "";
+    if(curMeBubble && curMeBubble.textContent.trim()){
+      const stext = curMeBubble.textContent.trim();
+      if(mode==="free"){
+        answerCount++;                       // 프리토킹: 학생 발화 수를 '대화'로 카운트
+        transcript.push({role:"학생", text:stext});
+      } else {
+        // 학생 발화가 '질문'인지 '대답'인지 분류 (친구가 질문을 권했거나, 의문 표현이 있으면 질문)
+        const looksQ = /なん|なに|いつ|どこ|どの|何|ですか|でしょうか|質問|[?？]/.test(stext);
+        const isQuestion = expectQuestion || looksQ;
+        if(isQuestion) questionCount++; else answerCount++;
+        transcript.push({role: isQuestion?"학생질문":"학생대답", text: stext});
+      }
+      updateTurnChip();
+    }
+    curAiBubble=null; curMeBubble=null;
+    if(awaitingFeedback){
+      awaitingFeedback=false;
+      feedbackText = aiText;   // 마무리 피드백은 대화내용과 분리해 따로 저장
+      const mm = aiText.match(/점수\s*[:：]?\s*(\d{1,3})/) || aiText.match(/(\d{1,3})\s*점/) || aiText.match(/(\d{1,3})\s*\/\s*100/);
+      lastScore = mm ? Math.min(100, parseInt(mm[1],10)).toString() : "";
+      onFeedbackDone();
+    } else if(aiText){
+      transcript.push({role:"친구", text:aiText});
+      if(mode!=="free"){
+        expectQuestion = /질문해|질문 해|물어봐|물어 봐|きいて|聞いて|質問して/.test(aiText);
+        if(/ようび|曜日|요일/.test(aiText)){   // 요일을 다룰 때만 달력 (연습 모드 전용)
+          const ev = detectEvent(aiText);
+          if(ev) renderCalendar(ev.m, ev.d);
+        }
+      }
+    }
+    const wait=()=>{ if(aiIsSpeaking()) setTimeout(wait,150); else setSpeaking(false); };
+    wait();
+  }
+}
+
+/* ===================== 마이크 ===================== */
+async function startMic(){
+  micStream=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1, echoCancellation:true, noiseSuppression:true, autoGainControl:true}});
+  micCtx=new (window.AudioContext||window.webkitAudioContext)(); await micCtx.resume();
+  const srcNode=micCtx.createMediaStreamSource(micStream);
+  const ratio=micCtx.sampleRate/16000;   // 입력 샘플레이트 -> 16kHz 변환 비율
+  let rbuf=[], rpos=0;
+  scriptNode=micCtx.createScriptProcessor(4096,1,1);
+  scriptNode.onaudioprocess=(ev)=>{
+    if(!micEnabled || !session || aiIsSpeaking()) return;  // 친구가 말하는 동안엔 전송 안 함
+    const input=ev.inputBuffer.getChannelData(0);
+    for(let i=0;i<input.length;i++) rbuf.push(input[i]);
+    const out=[];
+    while(rpos+1<rbuf.length){
+      const idx=Math.floor(rpos), frac=rpos-idx;
+      out.push(rbuf[idx]*(1-frac)+rbuf[idx+1]*frac);
+      rpos+=ratio;
+    }
+    const consumed=Math.floor(rpos);
+    if(consumed>0){ rbuf.splice(0,consumed); rpos-=consumed; }
+    if(out.length===0) return;
+    const pcm=new Int16Array(out.length);
+    for(let i=0;i<out.length;i++){ let v=Math.max(-1,Math.min(1,out[i])); pcm[i]=v<0?v*0x8000:v*0x7FFF; }
+    session.sendRealtimeInput({audio:{data:b64FromBuffer(pcm.buffer), mimeType:"audio/pcm;rate=16000"}});
+  };
+  // destination에 연결해야 처리가 돌아감. 출력 버퍼엔 아무것도 안 써서 소리는 나지 않음(되울림 없음).
+  srcNode.connect(scriptNode); scriptNode.connect(micCtx.destination);
+}
+
+/* ===================== 세션 연결 ===================== */
+async function connect(){
+  await loadSDK();
+  ai=new GoogleGenAI({apiKey:API_KEY, httpOptions:{apiVersion:"v1beta"}});
+  playCtx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:24000}); await playCtx.resume();
+  const config={
+    responseModalities:[Modality.AUDIO],
+    speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:"Zephyr"}}},
+    inputAudioTranscription:{}, outputAudioTranscription:{},
+    systemInstruction: (mode==="free" ? SYSTEM_FREE : SYSTEM_INSTRUCTION),
+    thinkingConfig:{thinkingLevel:"low"},   // 날짜·요일 판단이 더 정확하도록 약간의 사고
+    contextWindowCompression:{triggerTokens:25600, slidingWindow:{targetTokens:12800}},
+  };
+  session=await ai.live.connect({
+    model:MODEL, config,
+    callbacks:{
+      onopen:()=>{}, onmessage:onMessage,
+      onerror:(e)=>showOverlay("연결 중 오류가 발생했어요.<br><small>"+((e&&e.message)||"")+"</small>","다시 시작",restart),
+      onclose:()=>{ if(running) showOverlay("대화 세션이 종료되었어요.<br><small>(음성 세션은 약 15분까지 이어집니다)</small>","다시 시작",restart); },
+    },
+  });
+  await startMic();
+  running=true; micEnabled=true; micWrap.classList.add("listening"); refreshStatus();
+  session.sendRealtimeInput({text:"授業を始めましょう。"});  // 친구가 먼저 인사 (화면 표시 안 됨)
+}
+
+/* ===================== 마무리 (마이크 다시 누르기) + 점수 ===================== */
+function finishConversation(){
+  if(!running || awaitingFeedback || !micEnabled) return;
+  awaitingFeedback=true;
+  micWrap.classList.remove("listening","speaking");
+  try{ session.sendRealtimeInput({audioStreamEnd:true}); }catch(e){}
+  refreshStatus();
+  // 친구에게 마무리·점수·피드백 요청 (화면에는 표시되지 않는 숨은 신호)
+  session.sendRealtimeInput({text:"（これで かいわを おわります。きょうの かいわの てんすう と フィードバックを おねがいします。さいしょに かならず「점수: NN점」の かたちで 100てんまんてんの てんすうを かんこくごで いってください。）"});
+}
+function renderScoreCard(score){
+  const row=document.createElement("div"); row.className="row ai";
+  const ava=document.createElement("div"); ava.className="ava"; ava.textContent="🏮";
+  const card=document.createElement("div"); card.className="bubble";
+  const num = score ? (score+"<small> / 100점</small>") : "—";
+  card.innerHTML="<span class='name'>오늘의 점수</span>"+
+    "<div class='score-wrap'><div class='score-num'>"+num+"</div>"+
+    "<div class='score-label'>아래 피드백도 확인해 보세요</div></div>";
+  row.append(ava,card); logEl.appendChild(row); scrollDown();
+}
+function onFeedbackDone(){
+  micEnabled=false;
+  micWrap.classList.remove("listening","speaking"); micWrap.classList.add("paused");
+  renderScoreCard(lastScore);
+  statusEl.textContent = lastScore ? ("🌸 오늘 점수 "+lastScore+"점! '종료'를 누르면 저장돼요.")
+                                   : "🌸 오늘 연습 끝! '종료'를 누르면 저장돼요.";
+  sendToSheet();
+}
+
+/* ===================== 구글 시트 전송 ===================== */
+function sendToSheet(){
+  if(saved || !COLLECT_URL || COLLECT_URL.indexOf("여기에")===0) return;
+  const payload={
+    timestamp:new Date().toISOString(),
+    studentId:studentId, name:studentName,
+    activity:(mode==="free" ? "프리토킹" : "연중행사연습"),
+    answers:answerCount,
+    questions:questionCount,
+    score:lastScore,
+    feedback:feedbackText,
+    transcript:transcript.map(t=>t.role+": "+t.text).join("\n"),
+  };
+  try{
+    const blob=new Blob([JSON.stringify(payload)],{type:"text/plain;charset=utf-8"});
+    if(navigator.sendBeacon) navigator.sendBeacon(COLLECT_URL, blob);
+    else fetch(COLLECT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)});
+    saved=true;
+  }catch(e){ console.error("collect error",e); }
+}
+window.addEventListener("pagehide", ()=>{ if(running) sendToSheet(); });
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="hidden" && running) sendToSheet(); });
+
+/* ===================== 화면 전환/컨트롤 ===================== */
+function showOverlay(html,label,fn){
+  overlayBox.innerHTML=html;
+  if(label){ const b=document.createElement("button"); b.textContent=label; b.onclick=fn; overlayBox.appendChild(b); }
+  overlay.classList.add("show");
+}
+function loadingOverlay(){ overlayBox.innerHTML='<div class="spin"></div>친구를 부르는 중이에요…'; overlay.classList.add("show"); }
+function hideOverlay(){ overlay.classList.remove("show"); }
+
+async function startConversation(selectedMode){
+  mode = (selectedMode==="free") ? "free" : "quiz";
+  setupErr.textContent="";
+  studentId=sidInput.value.trim(); studentName=snameInput.value.trim();
+  if(!studentId || !studentName){ setupErr.textContent="학번과 이름을 입력해 주세요."; return; }
+  if(!consentBox.checked){ setupErr.textContent="개인정보 안내에 동의해 주세요."; return; }
+  if(!API_KEY || API_KEY.indexOf("여기에")===0){ setupErr.textContent="(선생님께) 파일 상단의 API_KEY를 먼저 설정해 주세요."; return; }
+  if(!window.isSecureContext){ setupErr.textContent="마이크 사용을 위해 https 주소로 접속해야 해요."; return; }
+
+  // 상태 초기화
+  transcript=[]; answerCount=0; questionCount=0; expectQuestion=false; awaitingFeedback=false; saved=false; lastScore=""; feedbackText="";
+  turnChip.classList.remove("done");
+  turnChip.textContent = (mode==="free") ? "프리토킹 — 대화 0회" : ("대답 0/"+ANS_TARGET+"  ·  질문 0/"+Q_TARGET);
+  whoTag.textContent = studentId+" "+studentName+(mode==="free"?" · 프리토킹":"");
+
+  setupEl.style.display="none"; chatEl.style.display="flex"; loadingOverlay();
+  try{ await connect(); hideOverlay(); }
+  catch(err){
+    console.error(err);
+    let m=(err&&err.message)?err.message:String(err);
+    if(/permission|denied|NotAllowed/i.test(m)) m="마이크 권한이 거부되었어요. 브라우저 설정에서 허용해 주세요.";
+    else if(/dynamically imported|Failed to fetch|import|network/i.test(m)) m="AI 모듈을 불러오지 못했어요. 인터넷 연결을 확인하고, 이 화면이 https 주소(예: netlify)인지 확인해 주세요.";
+    showOverlay("시작하지 못했어요.<br><small>"+m+"</small>","다시 시작",restart);
+  }
+}
+
+function teardown(){
+  running=false;
+  try{ if(session) session.close(); }catch(e){}
+  try{ if(scriptNode) scriptNode.disconnect(); }catch(e){}
+  try{ if(micStream) micStream.getTracks().forEach(t=>t.stop()); }catch(e){}
+  try{ if(micCtx) micCtx.close(); }catch(e){}
+  try{ if(playCtx) playCtx.close(); }catch(e){}
+  stopPlayback();
+  session=micCtx=micStream=scriptNode=playCtx=null;
+  micWrap.classList.remove("listening","speaking","paused");
+}
+function restart(){
+  hideOverlay();
+  if(running) sendToSheet();
+  teardown();
+  logEl.innerHTML=""; curAiBubble=curMeBubble=null;
+  chatEl.style.display="none"; setupEl.style.display="flex";
+  statusEl.textContent="준비 중이에요…";
+}
+
+micBtn.addEventListener("click", ()=>{
+  if(!running) return;
+  finishConversation();   // 마이크를 다시 누르면 대화를 마치고 점수·피드백을 받음
+});
+startBtn.addEventListener("click", ()=>startConversation("quiz"));
+freeBtn.addEventListener("click", ()=>startConversation("free"));
+endBtn.addEventListener("click", restart);
+checkReady();
+</script>
+</body>
+</html>
