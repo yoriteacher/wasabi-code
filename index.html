@@ -690,9 +690,22 @@ function pickVoice(){
 pickVoice();
 speechSynthesis.onvoiceschanged = pickVoice;
 
+/* 기계 음성은 「9がつ」를 きゅうがつ 로 읽습니다. 바른 읽기로 바꿔서 들려줍니다.
+   (4월 しがつ, 7월 しちがつ, 9월 くがつ — 기계가 자주 틀리는 셋입니다)
+   화면에 보이는 글자는 그대로 두고, 소리 낼 때만 바꿉니다. */
+const 달읽기 = ['いちがつ','にがつ','さんがつ','しがつ','ごがつ','ろくがつ',
+                'しちがつ','はちがつ','くがつ','じゅうがつ','じゅういちがつ','じゅうにがつ'];
+
+function 읽을모양(글){
+  return String(글 || '').replace(/(\d{1,2})\s*(月|がつ|ガツ)/g, (통째, 숫자) => {
+    const n = Number(숫자);
+    return (n >= 1 && n <= 12) ? 달읽기[n - 1] : 통째;
+  });
+}
+
 function speak(text){
   speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
+  const u = new SpeechSynthesisUtterance(읽을모양(text));
   u.lang = 'ja-JP';
   if (jpVoice) u.voice = jpVoice;
   u.rate = 1.0;
