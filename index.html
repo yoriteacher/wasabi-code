@@ -471,12 +471,47 @@ const plainLog = [];     // 피드백용 (화면에 보이는 텍스트)
 let busy = false;
 
 /* ---------------- GAS 통신 ---------------- */
-async function postGAS(payload){
-  const res = await fetch(GAS_URL, {
-    method:'POST',
-    body: JSON.stringify(payload)   /* Content-Type 미지정 → CORS preflight 회피 */
-  });
-  return await res.json();
+/* 앱스 스크립트는 한동안 쉬었다가 깨어날 때(콜드 스타트) 첫 요청이 실패할 때가 있다.
+   교실에서 여러 명이 동시에 처음 누르면 몇 명은 그 실패를 만난다.
+   학생이 눈치채지 못하게 조용히 두 번 더 시도한다. */
+async function postGAS(payload, 시도){
+  시도 = 시도 || 0;
+  try {
+    const res = await fetch(GAS_URL, {
+      method:'POST',
+      body: JSON.stringify(payload)   /* Content-Type 미지정 → CORS preflight 회피 */
+    });
+    if (!res.ok) throw new Error('http ' + res.status);
+    return await res.json();
+  } catch(e){
+    if (시도 < 2){
+      await new Promise(r => setTimeout(r, 900 * (시도 + 1)));
+      return postGAS(payload, 시도 + 1);
+    }
+    const 오류 = new Error('network');
+    오류.종류 = 'network';
+    throw 오류;
+  }
+}
+
+/* 실패 이유를 학생이 읽을 수 있는 말로 바꾼다.
+   예전에는 모든 실패를 "연결에 문제가 생겼어요" 로 뭉뚱그려서,
+   AI 열쇠가 잘못됐을 때도 인터넷 탓처럼 보였다. */
+function 오류안내(원인){
+  const s = String(원인 || '');
+  if (s === 'network')  return '인터넷 연결이 불안정해요. 잠시 뒤 다시 눌러 주세요.';
+  if (s === 'auth')     return '교사 인증번호가 올바르지 않아요. 선생님께 확인하세요.';
+  if (s.indexOf('api:') === 0){
+    const 속 = s.slice(4);
+    if (/api key|credit|billing/i.test(속))
+      return '(선생님께) AI 열쇠(API 키) 설정을 확인해 주세요.';
+    if (/overload|rate|429|busy/i.test(속))
+      return 'AI가 지금 많이 붐벼요. 잠시 뒤 다시 눌러 주세요.';
+    return '(선생님께) AI 연결 오류 — ' + 속.slice(0, 100);
+  }
+  if (s.indexOf('http ') === 0)
+    return '(선생님께) 서버 응답 오류 ' + s.slice(5) + ' — 웹 앱 배포를 확인해 주세요.';
+  return '문제가 생겼어요. 다시 한번 해 주세요.' + (s && s !== 'fail' ? ' (' + s.slice(0,80) + ')' : '');
 }
 
 /* ---------------- 로그인 ---------------- */
@@ -505,13 +540,11 @@ document.getElementById('loginBtn').onclick = async () => {
       document.getElementById('userBadge').textContent = `${sid} ${name}`;
       document.getElementById('loginScreen').classList.add('hide');
       startGreeting();
-    } else if (out.error === 'auth'){
-      err.textContent = '교사 인증번호가 올바르지 않아요. 선생님께 확인하세요.';
     } else {
-      err.textContent = '서버 설정에 문제가 있어요. 선생님께 알려 주세요.';
+      err.textContent = 오류안내(out.error);
     }
   } catch(e){
-    err.textContent = '연결할 수 없어요. 인터넷 상태를 확인해 주세요.';
+    err.textContent = 오류안내(e.종류 || e.message);
   }
   btn.disabled = false;
   btn.textContent = '시작하기 🍑';
@@ -770,7 +803,7 @@ async function sendTurn(userText, forceCal, forceClock){
     statusEl.textContent = '🎤 버튼을 누르고 대답해 보세요';
   } catch(e){
     hideTyping();
-    addSystem('연결에 문제가 생겼어요. 다시 한번 말해 주세요.');
+    addSystem(오류안내(e.종류 || e.message));
     statusEl.textContent = '⚠️ 다시 시도해 주세요';
     history.pop();
     plainLog.pop();
@@ -861,9 +894,9 @@ document.getElementById('fbBtn').onclick = async () => {
       transcript
     });
     document.getElementById('fbBody').textContent =
-      out.ok ? out.feedback : '피드백을 만들지 못했어요. 다시 시도해 주세요.';
+      out.ok ? out.feedback : 오류안내(out.error);
   } catch(e){
-    document.getElementById('fbBody').textContent = '연결에 문제가 생겼어요. 잠시 후 다시 시도해 주세요.';
+    document.getElementById('fbBody').textContent = 오류안내(e.종류 || e.message);
   }
 };
 
