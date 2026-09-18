@@ -117,6 +117,10 @@
         white-space:nowrap;opacity:0;transition:opacity .08s}
   .풍선.보임{opacity:1}
 
+  th.누를수있음{cursor:pointer;user-select:none;white-space:nowrap}
+  th.누를수있음:hover{color:var(--먹)}
+  th .화살{margin-left:3px;font-size:10px;opacity:.85}
+  th.정렬중{color:var(--잰값)}
   .담임반{display:inline-block;margin-left:5px;padding:0 5px;font-size:11px;
           font-weight:700;color:var(--먹연한);background:var(--선);border-radius:4px}
   .꼬리말{margin-top:34px;padding-top:14px;border-top:1px solid var(--선);
@@ -524,16 +528,87 @@
            '<div class="꼬리">' + ㅎ(꼬리) + '</div></div>';
   }
 
+  /* 학생표의 칸. 누르면 그 값으로 정렬합니다. 값내기가 없으면 못 누릅니다. */
+  var 학생칸들 = [
+    { 이름:'반',          값내기:function(ㅅ){ return 숫자로(ㅅ.반); } },
+    { 이름:'학번',        값내기:function(ㅅ){ return 숫자로(ㅅ.학번); } },
+    { 이름:'이름',        값내기:function(ㅅ){ return ㅅ.이름; } },
+    { 이름:'대화',        값내기:function(ㅅ){ return ㅅ.말수; } },
+    { 이름:'날',          값내기:function(ㅅ){ return ㅅ.날수; } },
+    { 이름:'처음 → 최근', 값내기:function(ㅅ){ return ㅅ.최근길이; } },
+    { 이름:'성장',        값내기:function(ㅅ){ return ㅅ.성장; } },
+    { 이름:'평균',        값내기:function(ㅅ){ return ㅅ.평균길이; } },
+    { 이름:'가장 길게',   값내기:function(ㅅ){ return ㅅ.가장긴말; } },
+    { 이름:'자취' },
+    { 이름:'마지막 대화', 값내기:function(ㅅ){ return ㅅ.마지막날; } }
+  ];
+
+  /* 정렬 상태. 키가 없으면 서버가 준 차례(대화가 적은 학생 먼저)를 그대로 씁니다. */
+  var 정렬 = { 키: null, 내림: false };
+
+  function 숫자로(값){
+    var ㄴ = Number(값);
+    return isFinite(ㄴ) ? ㄴ : 값;     // 숫자면 숫자로, 아니면 글자 그대로
+  }
+
+  function 견주기(가, 나){
+    if(가 == null) return 1;
+    if(나 == null) return -1;
+    if(typeof 가 === 'number' && typeof 나 === 'number') return 가 - 나;
+    return String(가).localeCompare(String(나), 'ko');
+  }
+
+  function 정렬하기(학생들){
+    if(!정렬.키) return 학생들;
+    var 칸 = 학생칸들.filter(function(ㅋ){ return ㅋ.이름 === 정렬.키; })[0];
+    if(!칸 || !칸.값내기) return 학생들;
+    var 벤것 = 학생들.slice();          // 원래 차례를 망가뜨리지 않습니다
+    벤것.sort(function(가, 나){
+      var ㄱ = 견주기(칸.값내기(가), 칸.값내기(나));
+      return 정렬.내림 ? -ㄱ : ㄱ;
+    });
+    return 벤것;
+  }
+
+  function 머리글만들기(){
+    return '<thead><tr>' + 학생칸들.map(function(ㅋ){
+      if(!ㅋ.값내기) return '<th>' + ㅎ(ㅋ.이름) + '</th>';
+      var 이중 = (정렬.키 === ㅋ.이름);
+      var 화살 = 이중 ? (정렬.내림 ? '▼' : '▲') : '';
+      return '<th class="누를수있음' + (이중 ? ' 정렬중' : '') + '"' +
+             ' data-정렬="' + ㅎ(ㅋ.이름) + '"' +
+             ' title="눌러서 정렬"' +
+             ' aria-sort="' + (이중 ? (정렬.내림 ? 'descending' : 'ascending') : 'none') + '">' +
+             ㅎ(ㅋ.이름) + '<span class="화살">' + 화살 + '</span></th>';
+    }).join('') + '</tr></thead>';
+  }
+
+  function 머리글누르기(곳){
+    [].forEach.call(곳.querySelectorAll('th[data-정렬]'), function(ㄷ){
+      ㄷ.addEventListener('click', function(){
+        var 키 = ㄷ.getAttribute('data-정렬');
+        if(정렬.키 === 키){
+          // 오름 → 내림 → 원래 차례
+          if(!정렬.내림) 정렬.내림 = true;
+          else 정렬 = { 키: null, 내림: false };
+        } else {
+          정렬 = { 키: 키, 내림: false };
+        }
+        학생표그리기(마지막학생들);
+      });
+    });
+  }
+
+  var 마지막학생들 = [];
+
   function 학생표그리기(학생들){
+    마지막학생들 = 학생들;
     var 곳 = document.getElementById('학생표');
     if(!학생들.length){ 곳.innerHTML = '<div class="비었음">아직 대화 기록이 없습니다.</div>'; return; }
 
-    var 글 = '<table><thead><tr>' +
-      '<th>반</th><th>학번</th><th>이름</th><th>대화</th><th>날</th><th>처음 → 최근</th><th>성장</th>' +
-      '<th>평균</th><th>가장 길게</th><th>자취</th><th>마지막 대화</th>' +
-      '</tr></thead><tbody>';
+    var 글 = '<table>' + 머리글만들기() + '<tbody>';
 
-    학생들.forEach(function(ㅅ){
+    정렬하기(학생들).forEach(function(ㅅ){
       var 도움 = (ㅅ.급함 > 0) ? ' class="도움"' : '';
       글 += '<tr' + 도움 + '>' +
         '<td class="수">' + ㅎ(ㅅ.반 === '?' ? '–' : ㅅ.반) +
@@ -552,6 +627,7 @@
         '</tr>';
     });
     곳.innerHTML = 글 + '</tbody></table>';
+    머리글누르기(곳);
   }
 
   function 날짜표그리기(자료){
