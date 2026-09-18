@@ -86,6 +86,22 @@ function 같은글자_(가, 나) {
 }
 
 
+/**
+ * 학번에서 학년·반·번호를 읽습니다.
+ * 학번은 20709 처럼 다섯 자리 = 학년(1) + 반(2) + 번호(2) 입니다.
+ * 형식이 다르면 반을 '?' 로 두고 나머지는 그대로 돌아갑니다.
+ */
+function 학번풀기_(학번) {
+  var ㅅ = String(학번 || '').trim();
+  if (!/^\d{5}$/.test(ㅅ)) return { 학년: '', 반: '?', 번호: '' };
+  return {
+    학년: ㅅ.charAt(0),
+    반: String(Number(ㅅ.substring(1, 3))),
+    번호: String(Number(ㅅ.substring(3, 5)))
+  };
+}
+
+
 function 칸찾기_(제목, 열쇠말들, 기본) {
   for (var i = 0; i < 제목.length; i++) {
     for (var k = 0; k < 열쇠말들.length; k++) {
@@ -159,9 +175,13 @@ function 학생별활동() {
     var 처음길이 = 날들.length ? 날들[0].평균길이 : 0;
     var 최근길이 = 날들.length ? 날들[날들.length - 1].평균길이 : 0;
 
+    var 갈래 = 학번풀기_(ㅅ.학번);
     var 한명 = {
       학번: ㅅ.학번,
       이름: ㅅ.이름,
+      학년: 갈래.학년,
+      반: 갈래.반,
+      번호: 갈래.번호,
       말수: ㅅ.기록.length,
       날수: 날들.length,
       평균길이: 평균길이,
@@ -192,6 +212,7 @@ function 학생별활동() {
     학생들: 학생들,
     짚을학생: 짚을학생,
     날짜들: 날짜들,
+    반들: 반별요약_(학생들),
     전체: 전체요약_(학생들),
     말칸있나: ㄱ.말 >= 0
   };
@@ -262,8 +283,36 @@ function 전체요약_(학생들) {
   };
 }
 
+/** 반별로 묶어 견줍니다. */
+function 반별요약_(학생들) {
+  var 묶음 = {};
+  학생들.forEach(function (ㅅ) {
+    if (!묶음[ㅅ.반]) 묶음[ㅅ.반] = [];
+    묶음[ㅅ.반].push(ㅅ);
+  });
+
+  return Object.keys(묶음).sort(function (가, 나) {
+    if (가 === '?') return 1;
+    if (나 === '?') return -1;
+    return Number(가) - Number(나);
+  }).map(function (반) {
+    var 들 = 묶음[반];
+    var 길이들 = 들.filter(function (ㅅ) { return ㅅ.평균길이 > 0; }).map(function (ㅅ) { return ㅅ.평균길이; });
+    var 성장들 = 들.map(function (ㅅ) { return ㅅ.성장; });
+    return {
+      반: 반,
+      학생수: 들.length,
+      말수: 들.reduce(function (ㄱ, ㅅ) { return ㄱ + ㅅ.말수; }, 0),
+      평균길이: 길이들.length ? 반올림_(길이들.reduce(function (ㄱ, ㄴ) { return ㄱ + ㄴ; }, 0) / 길이들.length) : 0,
+      평균성장: 반올림_(성장들.reduce(function (ㄱ, ㄴ) { return ㄱ + ㄴ; }, 0) / 들.length),
+      짚을사람: 들.filter(function (ㅅ) { return ㅅ.급함 > 0; }).length
+    };
+  });
+}
+
+
 function 빈자료_() {
-  return { 학생들: [], 짚을학생: [], 날짜들: [], 전체: 전체요약_([]), 말칸있나: false };
+  return { 학생들: [], 짚을학생: [], 날짜들: [], 반들: [], 전체: 전체요약_([]), 말칸있나: false };
 }
 
 /** 일본어는 한 글자가 한 낱말 몫을 하므로 글자 수로 셉니다. 공백은 뺍니다. */
