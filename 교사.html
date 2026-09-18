@@ -117,6 +117,8 @@
         white-space:nowrap;opacity:0;transition:opacity .08s}
   .풍선.보임{opacity:1}
 
+  .담임반{display:inline-block;margin-left:5px;padding:0 5px;font-size:11px;
+          font-weight:700;color:var(--먹연한);background:var(--선);border-radius:4px}
   .꼬리말{margin-top:34px;padding-top:14px;border-top:1px solid var(--선);
           color:var(--먹연한);font-size:13px}
 </style>
@@ -245,7 +247,7 @@
 
     var 글 = '<span class="딱지">반</span>';
     ['전체'].concat(반들).forEach(function(ㅂ){
-      var 이름 = (ㅂ === '전체') ? '전체' : (ㅂ === '?' ? '학번 이상' : ㅂ + '반');
+      var 이름 = 반이름(ㅂ);
       글 += '<button type="button" class="반단추" data-반="' + ㅎ(ㅂ) + '" aria-pressed="' +
             (ㅂ === 고른반) + '">' + ㅎ(이름) + '</button>';
     });
@@ -259,6 +261,13 @@
         그리기();
       });
     });
+  }
+
+  /* 201·207 같은 수업 반 이름은 그대로, 담임반 숫자는 'N반' 으로 */
+  function 반이름(ㅂ){
+    if(ㅂ === '전체') return '전체';
+    if(ㅂ === '?') return '학번 이상';
+    return /^\d{3,}$/.test(ㅂ) ? ㅂ : ㅂ + '반';
   }
 
   function 고른학생들(){
@@ -304,7 +313,7 @@
     var 학생들 = 고른학생들();
     document.getElementById('언제').textContent =
       이제.getFullYear() + '년 ' + (이제.getMonth()+1) + '월 ' + 이제.getDate() + '일 기준' +
-      (고른반 === '전체' ? '' : ' · ' + (고른반 === '?' ? '학번 이상' : 고른반 + '반'));
+      (고른반 === '전체' ? '' : ' · ' + 반이름(고른반));
 
     var ㅈ = 요약내기(학생들);
     document.getElementById('요약').innerHTML = [
@@ -399,7 +408,7 @@
       var 너비 = Math.min(58, 칸너비 * 0.56);
       var x = 왼 + 칸너비*i + (칸너비-너비)/2;
       var 높 = Math.max(2, (위 + 그림높이) - y(ㅂ.평균길이));
-      var 이름 = (ㅂ.반 === '?') ? '이상' : ㅂ.반 + '반';
+      var 이름 = 반이름(ㅂ.반);
       g += '<rect x="' + x + '" y="' + y(ㅂ.평균길이) + '" width="' + 너비 + '" height="' + 높 +
            '" rx="4" fill="var(--잰값)" data-풍선="' + ㅎ(이름 + ' · ' + ㅂ.학생수 + '명<br>평균 ' + ㅂ.평균길이 +
            '글자 · 성장 ' + (ㅂ.평균성장>0?'+':'') + ㅂ.평균성장 + '<br>대화 ' + ㅂ.말수 + '번 · 먼저 볼 학생 ' + ㅂ.짚을사람 + '명') + '"/>' +
@@ -527,7 +536,9 @@
     학생들.forEach(function(ㅅ){
       var 도움 = (ㅅ.급함 > 0) ? ' class="도움"' : '';
       글 += '<tr' + 도움 + '>' +
-        '<td class="수">' + ㅎ(ㅅ.반 === '?' ? '–' : ㅅ.반) + '</td>' +
+        '<td class="수">' + ㅎ(ㅅ.반 === '?' ? '–' : ㅅ.반) +
+          (ㅅ.합반 && ㅅ.담임반 && ㅅ.담임반 !== '?'
+            ? '<span class="담임반">' + ㅎ(ㅅ.담임반) + '반</span>' : '') + '</td>' +
         '<td class="수">' + ㅎ(ㅅ.학번) + '</td>' +
         '<td>' + ㅎ(ㅅ.이름) + '</td>' +
         '<td class="수">' + ㅅ.말수 + '</td>' +

@@ -102,6 +102,50 @@ function 학번풀기_(학번) {
 }
 
 
+/**
+ * '반배정' 탭에서 학번 → 수업 반 을 읽습니다.
+ *
+ * 201·207 같은 선택과목 합반은 여러 담임반 학생이 한 수업에 모입니다.
+ * 학번으로 반을 읽으면 한 수업이 담임반 수만큼 조각나므로,
+ * 출석부대로 묶으려면 이 표가 있어야 합니다.
+ *
+ * 탭 모양 (첫 줄은 제목)
+ *   학번   | 수업반
+ *   20105  | 201
+ *
+ * 탭이 없으면 학번에서 읽은 담임반을 그대로 씁니다.
+ */
+function 수업반읽기_() {
+  var 시트 = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('반배정');
+  if (!시트) return null;
+
+  var 값 = 시트.getDataRange().getValues();
+  if (값.length < 2) return null;
+
+  var 제목 = 값[0].map(function (c) { return String(c || '').trim(); });
+  var 학번칸 = 칸찾기_(제목, ['학번'], 0);
+  var 반칸 = 칸찾기_(제목, ['수업반', '반'], 1);
+
+  var 표 = {};
+  for (var i = 1; i < 값.length; i++) {
+    var 학번 = String(값[i][학번칸] || '').trim();
+    var 반 = String(값[i][반칸] || '').trim();
+    if (학번 && 반) 표[학번] = 반;
+  }
+  return 표;
+}
+
+
+/** 반 이름 차례. 숫자면 숫자 순, '?' 는 맨 뒤. */
+function 반차례_(가, 나) {
+  if (가 === '?') return 1;
+  if (나 === '?') return -1;
+  var ㄱ = Number(가), ㄴ = Number(나);
+  if (isFinite(ㄱ) && isFinite(ㄴ)) return ㄱ - ㄴ;
+  return String(가) < String(나) ? -1 : 1;
+}
+
+
 function 칸찾기_(제목, 열쇠말들, 기본) {
   for (var i = 0; i < 제목.length; i++) {
     for (var k = 0; k < 열쇠말들.length; k++) {
@@ -149,6 +193,8 @@ function 학생별활동() {
     });
   }
 
+  var 수업반표 = 수업반읽기_();      // 없으면 null → 담임반을 씁니다
+
   var 학생들 = [];
   var 날모음 = {};        // 날짜 → { 학생: 이름들, 말수 }
 
@@ -176,11 +222,14 @@ function 학생별활동() {
     var 최근길이 = 날들.length ? 날들[날들.length - 1].평균길이 : 0;
 
     var 갈래 = 학번풀기_(ㅅ.학번);
+    var 수업반 = (수업반표 && 수업반표[ㅅ.학번]) || '';
     var 한명 = {
       학번: ㅅ.학번,
       이름: ㅅ.이름,
       학년: 갈래.학년,
-      반: 갈래.반,
+      반: 수업반 || 갈래.반,        // 출석부 배정이 있으면 그것이 먼저
+      담임반: 갈래.반,
+      합반: !!수업반,
       번호: 갈래.번호,
       말수: ㅅ.기록.length,
       날수: 날들.length,
@@ -213,6 +262,7 @@ function 학생별활동() {
     짚을학생: 짚을학생,
     날짜들: 날짜들,
     반들: 반별요약_(학생들),
+    수업반씀: !!수업반표,
     전체: 전체요약_(학생들),
     말칸있나: ㄱ.말 >= 0
   };
@@ -291,11 +341,7 @@ function 반별요약_(학생들) {
     묶음[ㅅ.반].push(ㅅ);
   });
 
-  return Object.keys(묶음).sort(function (가, 나) {
-    if (가 === '?') return 1;
-    if (나 === '?') return -1;
-    return Number(가) - Number(나);
-  }).map(function (반) {
+  return Object.keys(묶음).sort(반차례_).map(function (반) {
     var 들 = 묶음[반];
     var 길이들 = 들.filter(function (ㅅ) { return ㅅ.평균길이 > 0; }).map(function (ㅅ) { return ㅅ.평균길이; });
     var 성장들 = 들.map(function (ㅅ) { return ㅅ.성장; });
