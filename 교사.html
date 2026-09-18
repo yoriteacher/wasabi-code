@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<style>
+  :root{
+    --먹:#14181f; --먹연한:#5b6472; --선:#e3e6ea; --종이:#fbfcfd;
+    --초록:#5a8f3c; --노랑:#c8a23a; --빨강:#c0503f; --남색:#2d5b8e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:22px 16px 60px;background:#fff;color:var(--먹);
+       font-family:"Pretendard","Noto Sans KR","맑은 고딕",system-ui,sans-serif;
+       font-size:16px;line-height:1.65;word-break:keep-all;overflow-wrap:break-word}
+  .감싸기{max-width:980px;margin:0 auto}
+  h1{font-size:23px;margin:0 0 4px}
+  .부제{color:var(--먹연한);font-size:14.5px;margin:0 0 22px}
+
+  /* 잠금 화면 */
+  .잠금{max-width:380px;margin:60px auto;padding:26px 24px;border:1px solid var(--선);
+        border-radius:14px;background:var(--종이)}
+  .잠금 h2{margin:0 0 6px;font-size:19px}
+  .잠금 p{margin:0 0 16px;color:var(--먹연한);font-size:14px}
+  input[type=password]{width:100%;padding:11px 13px;font-size:16px;font-family:inherit;
+        border:1px solid var(--선);border-radius:9px;outline:none}
+  input[type=password]:focus{border-color:var(--남색)}
+  button{margin-top:10px;width:100%;padding:11px;font-size:15.5px;font-weight:700;
+        font-family:inherit;color:#fff;background:var(--먹);border:none;border-radius:9px;cursor:pointer}
+  button:disabled{opacity:.5;cursor:default}
+  .탈{margin-top:10px;color:var(--빨강);font-size:14px;min-height:20px}
+
+  /* 요약 */
+  .요약{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+  @media(max-width:700px){.요약{grid-template-columns:repeat(2,1fr)}}
+  .칸{padding:13px 15px;border:1px solid var(--선);border-radius:11px;background:var(--종이)}
+  .칸 .이름{font-size:12.5px;color:var(--먹연한);font-weight:600}
+  .칸 .값{font-size:25px;font-weight:800;line-height:1.25}
+  .칸 .꼬리{font-size:12.5px;color:var(--먹연한)}
+
+  h2.구역{font-size:18px;margin:28px 0 4px}
+  .구역설명{margin:0 0 12px;color:var(--먹연한);font-size:14px}
+
+  table{width:100%;border-collapse:collapse;font-size:14.5px}
+  th,td{padding:9px 8px;border-bottom:1px solid var(--선);text-align:left;vertical-align:middle}
+  th{font-size:12.5px;color:var(--먹연한);font-weight:700;white-space:nowrap}
+  td.수{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .위{color:var(--초록);font-weight:800}
+  .아래{color:var(--빨강);font-weight:800}
+  .같음{color:var(--먹연한)}
+  .문장칸{font-family:"Noto Sans JP",system-ui,sans-serif}
+  .막대{height:7px;border-radius:99px;background:#eef0f3;overflow:hidden;min-width:70px}
+  .막대 span{display:block;height:100%}
+  .도움{background:#fdf3f1}
+  .비었음{padding:30px;text-align:center;color:var(--먹연한);border:1px dashed var(--선);border-radius:12px}
+
+  /* 먼저 볼 학생 카드 */
+  .짚줄{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+  .짚칸{padding:14px 16px;border:1px solid var(--선);border-left:4px solid var(--빨강);
+        border-radius:11px;background:var(--종이)}
+  .짚머리{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+  .짚이름{font-size:17.5px;font-weight:800}
+  .짚학번{font-size:13px;color:var(--먹연한);font-variant-numeric:tabular-nums}
+  .짚급함{margin-left:auto;font-size:11.5px;font-weight:800;padding:1px 8px;
+          border:1px solid;border-radius:99px}
+  .짚까닭{margin:0 0 9px;padding-left:17px;font-size:14px}
+  .짚까닭 li{margin-bottom:2px}
+  .짚문장{margin-bottom:8px;padding:8px 10px;background:#fff;border:1px solid var(--선);
+          border-radius:8px;font-size:14px}
+  .짚딱지{display:block;font-size:11.5px;font-weight:700;color:var(--남색);margin-bottom:2px}
+  .짚평균{display:block;font-size:12.5px;color:var(--먹연한);margin-top:2px}
+  .짚끝{font-size:12.5px;color:var(--먹연한);font-variant-numeric:tabular-nums}
+  .꼬리말{margin-top:34px;padding-top:14px;border-top:1px solid var(--선);
+          color:var(--먹연한);font-size:13px}
+</style>
+</head>
+<body>
+<div class="감싸기">
+
+  <!-- 1단계: 비밀번호 -->
+  <div id="잠금" class="잠금">
+    <h2>선생님 화면</h2>
+    <p>학생 대화 기록이 들어 있어 비밀번호가 필요합니다.</p>
+    <input type="password" id="비번" placeholder="비밀번호" autocomplete="current-password">
+    <button id="들어가기">들어가기</button>
+    <div class="탈" id="탈"></div>
+  </div>
+
+  <!-- 2단계: 대시보드 -->
+  <div id="본문" style="display:none">
+    <h1>ももたろう — 학생들이 얼마나 늘었나</h1>
+    <p class="부제" id="언제"></p>
+
+    <div class="요약" id="요약"></div>
+
+    <h2 class="구역">먼저 볼 학생</h2>
+    <p class="구역설명">
+      급한 순서입니다. 점수가 낮은 학생만이 아니라, <b>잘하다가 떨어진 학생</b>과
+      <b>거의 안 해 본 학생</b>도 함께 올라옵니다.
+    </p>
+    <div id="짚을학생"></div>
+
+    <h2 class="구역">학생별 성장</h2>
+    <p class="구역설명">
+      이 앱에는 점수가 없습니다. 그래서 <b>한 번에 얼마나 길게 말하는가</b>로 봅니다.
+      <b>처음 → 최근</b>은 처음 한 날과 마지막 날의 평균 발화 길이(글자 수)입니다.
+      단어만 말하던 학생이 문장으로 말하기 시작하면 이 숫자가 올라갑니다.
+    </p>
+    <div id="학생표"></div>
+
+    <h2 class="구역">날짜별 참여</h2>
+    <p class="구역설명">어느 날 얼마나 주고받았는지입니다.</p>
+    <div id="날짜표"></div>
+
+    <p class="꼬리말">
+      이 화면은 비밀번호를 아는 사람만 볼 수 있습니다. 학생 이름·학번과 대화 내용이
+      들어 있으니 화면을 띄운 채 자리를 비우거나 프로젝터로 띄우지 마세요.
+      학생들이 쓰는 &lsquo;교사 인증번호&rsquo;와는 다른 비밀번호를 쓰세요.
+    </p>
+  </div>
+
+</div>
+
+<script>
+  var 비번칸 = document.getElementById('비번');
+  var 단추 = document.getElementById('들어가기');
+  var 탈 = document.getElementById('탈');
+
+  단추.addEventListener('click', 들어가기);
+  비번칸.addEventListener('keydown', function(e){ if(e.key === 'Enter') 들어가기(); });
+  비번칸.focus();
+
+  function 들어가기(){
+    var 값 = 비번칸.value;
+    if(!값){ 탈.textContent = '비밀번호를 넣어 주세요.'; return; }
+    단추.disabled = true; 단추.textContent = '여는 중…'; 탈.textContent = '';
+    google.script.run
+      .withSuccessHandler(받음)
+      .withFailureHandler(실패)
+      .대시보드자료(값);
+  }
+
+  function 실패(오류){
+    단추.disabled = false; 단추.textContent = '들어가기';
+    탈.textContent = (오류 && 오류.message) ? 오류.message : '열지 못했습니다.';
+  }
+
+  function 받음(답){
+    단추.disabled = false; 단추.textContent = '들어가기';
+    if(!답 || !답.ok){ 탈.textContent = (답 && 답.까닭) || '열지 못했습니다.'; 비번칸.value=''; 비번칸.focus(); return; }
+    비번칸.value = '';                     // 화면에 남기지 않습니다
+    document.getElementById('잠금').style.display = 'none';
+    document.getElementById('본문').style.display = '';
+    그리기(답.자료);
+  }
+
+  function ㅎ(글){
+    return String(글 == null ? '' : 글)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  /* 발화 길이 기준. 일본어 입문 수준에서 15글자면 한 문장을 말한 셈입니다. */
+  function 색(길이){
+    if(길이 >= 15) return 'var(--초록)';
+    if(길이 >= 8)  return 'var(--노랑)';
+    return 'var(--빨강)';
+  }
+  function 눈금(길이){ return Math.max(0, Math.min(100, (길이 / 30) * 100)); }
+
+  function 성장표시(값){
+    if(값 > 0)  return '<span class="위">▲ ' + 값 + '</span>';
+    if(값 < 0)  return '<span class="아래">▼ ' + Math.abs(값) + '</span>';
+    return '<span class="같음">–</span>';
+  }
+
+  /* 점수가 지나온 자취를 작은 선으로 */
+  function 자취그림(점수들){
+    if(!점수들 || 점수들.length < 2) return '<span class="같음">–</span>';
+    var 너비 = 92, 높이 = 24, 칸 = 너비 / (점수들.length - 1);
+    var 점 = 점수들.map(function(ㅈ, i){
+      var y = 높이 - 2 - (눈금(ㅈ) / 100) * (높이 - 4);
+      return (i * 칸).toFixed(1) + ',' + y.toFixed(1);
+    }).join(' ');
+    var 끝 = 점수들[점수들.length - 1];
+    return '<svg width="' + 너비 + '" height="' + 높이 + '" aria-label="점수 자취">' +
+           '<polyline points="' + 점 + '" fill="none" stroke="' + 색(끝) +
+           '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+  }
+
+  function 그리기(자료){
+    var 이제 = new Date();
+    document.getElementById('언제').textContent =
+      이제.getFullYear() + '년 ' + (이제.getMonth()+1) + '월 ' + 이제.getDate() + '일 기준';
+
+    var ㅈ = 자료.전체;
+    document.getElementById('요약').innerHTML = [
+      칸만들기('대화한 학생', ㅈ.학생수 + '명', '모두 ' + ㅈ.말수 + '번 주고받음'),
+      칸만들기('평균 발화 길이', ㅈ.평균길이 + '글자', '한 번 말할 때'),
+      칸만들기('평균 성장', (ㅈ.평균성장 > 0 ? '+' : '') + ㅈ.평균성장 + '글자', '처음 한 날 → 마지막 날'),
+      칸만들기('말이 는 학생', ㅈ.는사람 + '명', ㅈ.준사람 + '명은 짧아짐')
+    ].join('');
+
+    if(자료.말칸있나 === false){
+      var 알림 = document.createElement('div');
+      알림.className = '비었음';
+      알림.style.marginBottom = '18px';
+      알림.textContent = '기록 시트에서 학생이 말한 내용이 담긴 칸을 찾지 못했습니다. ' +
+        '대화 횟수는 정확하지만 발화 길이는 0으로 나옵니다. ' +
+        '그 칸의 제목에 \u0027학생\u0027 이나 \u0027발화\u0027 를 넣어 주세요.';
+      document.getElementById('요약').after(알림);
+    }
+    짚을학생그리기(자료.짚을학생 || []);
+    학생표그리기(자료.학생들);
+    날짜표그리기(자료);
+  }
+
+  function 짚을학생그리기(학생들){
+    var 곳 = document.getElementById('짚을학생');
+    if(!학생들.length){
+      곳.innerHTML = '<div class="비었음">지금은 따로 볼 학생이 없습니다. 모두 꾸준히 하고 있습니다.</div>';
+      return;
+    }
+    var 글 = '<div class="짚줄">';
+    학생들.forEach(function(ㅅ){
+      var 급 = ㅅ.급함 >= 3 ? '높음' : (ㅅ.급함 === 2 ? '보통' : '낮음');
+      var 급색 = ㅅ.급함 >= 3 ? 'var(--빨강)' : (ㅅ.급함 === 2 ? 'var(--노랑)' : 'var(--먹연한)');
+      글 += '<div class="짚칸">' +
+        '<div class="짚머리">' +
+          '<span class="짚이름">' + ㅎ(ㅅ.이름) + '</span>' +
+          '<span class="짚학번">' + ㅎ(ㅅ.학번) + '</span>' +
+          '<span class="짚급함" style="color:' + 급색 + ';border-color:' + 급색 + '">' + 급 + '</span>' +
+        '</div>' +
+        '<ul class="짚까닭">' +
+          ㅅ.까닭들.map(function(ㄱ){ return '<li>' + ㅎ(ㄱ) + '</li>'; }).join('') +
+        '</ul>' +
+        '<div class="짚끝">대화 ' + ㅅ.말수 + '번 · ' + ㅅ.날수 + '일 · ' +
+          '평균 ' + ㅅ.평균길이 + '글자 · 처음 ' + ㅅ.처음길이 + ' → 최근 ' + ㅅ.최근길이 +
+          ' ' + 성장표시(ㅅ.성장) + '</div>' +
+        '</div>';
+    });
+    곳.innerHTML = 글 + '</div>';
+  }
+
+  function 칸만들기(이름, 값, 꼬리){
+    return '<div class="칸"><div class="이름">' + ㅎ(이름) + '</div>' +
+           '<div class="값">' + ㅎ(값) + '</div>' +
+           '<div class="꼬리">' + ㅎ(꼬리) + '</div></div>';
+  }
+
+  function 학생표그리기(학생들){
+    var 곳 = document.getElementById('학생표');
+    if(!학생들.length){ 곳.innerHTML = '<div class="비었음">아직 대화 기록이 없습니다.</div>'; return; }
+
+    var 글 = '<table><thead><tr>' +
+      '<th>학번</th><th>이름</th><th>대화</th><th>날</th><th>처음 → 최근</th><th>성장</th>' +
+      '<th>평균</th><th>가장 길게</th><th>자취</th><th>마지막 대화</th>' +
+      '</tr></thead><tbody>';
+
+    학생들.forEach(function(ㅅ){
+      var 도움 = (ㅅ.급함 > 0) ? ' class="도움"' : '';
+      글 += '<tr' + 도움 + '>' +
+        '<td class="수">' + ㅎ(ㅅ.학번) + '</td>' +
+        '<td>' + ㅎ(ㅅ.이름) + '</td>' +
+        '<td class="수">' + ㅅ.말수 + '</td>' +
+        '<td class="수">' + ㅅ.날수 + '</td>' +
+        '<td class="수">' + ㅅ.처음길이 + ' → <b style="color:' + 색(ㅅ.최근길이) + '">' + ㅅ.최근길이 + '</b></td>' +
+        '<td class="수">' + 성장표시(ㅅ.성장) + '</td>' +
+        '<td class="수">' + ㅅ.평균길이 + '</td>' +
+        '<td class="수">' + ㅅ.가장긴말 + '</td>' +
+        '<td>' + 자취그림(ㅅ.자취) + '</td>' +
+        '<td class="수">' + ㅎ(ㅅ.마지막날) + '</td>' +
+        '</tr>';
+    });
+    곳.innerHTML = 글 + '</tbody></table>';
+  }
+
+  function 날짜표그리기(자료){
+    var 곳 = document.getElementById('날짜표');
+    var 날들 = 자료.날짜들 || [];
+    if(!날들.length){ 곳.innerHTML = '<div class="비었음">아직 기록이 없습니다.</div>'; return; }
+
+    var 가장많음 = Math.max.apply(null, 날들.map(function(ㄴ){ return ㄴ.말수; }));
+    var 글 = '<table><thead><tr><th>날짜</th><th>참여 학생</th><th>주고받은 수</th><th></th></tr></thead><tbody>';
+    날들.forEach(function(ㄴ){
+      글 += '<tr>' +
+        '<td class="수">' + ㅎ(ㄴ.날) + '</td>' +
+        '<td class="수">' + ㄴ.학생수 + '명</td>' +
+        '<td class="수">' + ㄴ.말수 + '</td>' +
+        '<td><div class="막대"><span style="width:' +
+          (가장많음 ? (ㄴ.말수 / 가장많음) * 100 : 0) +
+          '%;background:var(--남색)"></span></div></td>' +
+        '</tr>';
+    });
+    곳.innerHTML = 글 + '</tbody></table>';
+  }
+
+</script>
+</body>
+</html>
